@@ -1,8 +1,7 @@
 import logging
 
-from selenium.webdriver.chrome.options import Options
 from config import config
-
+from selenium.webdriver.chrome.options import Options
 
 logger = logging.getLogger(__name__)
 

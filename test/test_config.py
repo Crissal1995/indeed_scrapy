@@ -1,6 +1,10 @@
 import tempfile
 
-from src.utility.config import get_config, DEFAULT_SELENIUM_CONFIG, DEFAULT_CHROME_CONFIG
+from src.utility.config import (
+    DEFAULT_CHROME_CONFIG,
+    DEFAULT_SELENIUM_CONFIG,
+    get_config,
+)
 
 
 def create_temp_file(content: bytes = b"") -> str:

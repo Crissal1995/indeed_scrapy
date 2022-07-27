@@ -4,7 +4,6 @@ from typing import Optional
 
 from attr import dataclass
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -52,20 +51,38 @@ def get_config(cfg_fp: str = "", *, first_usage=False) -> Config:
 
     # get selenium options
     selenium = parser["selenium"]
-    headless = selenium.getboolean("headless", fallback=DEFAULT_SELENIUM_CONFIG.headless)
+    headless = selenium.getboolean(
+        "headless", fallback=DEFAULT_SELENIUM_CONFIG.headless
+    )
     _logging = selenium.getboolean("logging", fallback=DEFAULT_SELENIUM_CONFIG.logging)
-    no_sandbox = selenium.getboolean("no_sandbox", fallback=DEFAULT_SELENIUM_CONFIG.no_sandbox)
-    ignore_certificate_errors = selenium.getboolean("ignore_certificate_errors", fallback=DEFAULT_SELENIUM_CONFIG.ignore_certificate_errors)
-    allow_running_insecure_content = selenium.getboolean("allow_running_insecure_content", fallback=DEFAULT_SELENIUM_CONFIG.allow_running_insecure_content)
-    disable_dev_shm_usage = selenium.getboolean("disable_dev_shm_usage", fallback=DEFAULT_SELENIUM_CONFIG.disable_dev_shm_usage)
-    disable_gpu = selenium.getboolean("disable_gpu", fallback=DEFAULT_SELENIUM_CONFIG.disable_gpu)
+    no_sandbox = selenium.getboolean(
+        "no_sandbox", fallback=DEFAULT_SELENIUM_CONFIG.no_sandbox
+    )
+    ignore_certificate_errors = selenium.getboolean(
+        "ignore_certificate_errors",
+        fallback=DEFAULT_SELENIUM_CONFIG.ignore_certificate_errors,
+    )
+    allow_running_insecure_content = selenium.getboolean(
+        "allow_running_insecure_content",
+        fallback=DEFAULT_SELENIUM_CONFIG.allow_running_insecure_content,
+    )
+    disable_dev_shm_usage = selenium.getboolean(
+        "disable_dev_shm_usage", fallback=DEFAULT_SELENIUM_CONFIG.disable_dev_shm_usage
+    )
+    disable_gpu = selenium.getboolean(
+        "disable_gpu", fallback=DEFAULT_SELENIUM_CONFIG.disable_gpu
+    )
 
     # get chrome options
     chrome = parser["chrome"]
     user_agent = chrome.get("user_agent", fallback=DEFAULT_CHROME_CONFIG.user_agent)
-    profile_root = chrome.get("profile_root", fallback=DEFAULT_CHROME_CONFIG.profile_root)
+    profile_root = chrome.get(
+        "profile_root", fallback=DEFAULT_CHROME_CONFIG.profile_root
+    )
     profile = chrome.get("profile", fallback=DEFAULT_CHROME_CONFIG.profile)
-    binary_location = chrome.get("binary_location", fallback=DEFAULT_CHROME_CONFIG.binary_location)
+    binary_location = chrome.get(
+        "binary_location", fallback=DEFAULT_CHROME_CONFIG.binary_location
+    )
 
     _config = Config(
         chrome=ChromeConfig(
