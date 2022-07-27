@@ -2,13 +2,13 @@ import configparser
 import logging
 from typing import Optional
 
-from attrs import define
+from attr import dataclass
 
 
 logger = logging.getLogger(__name__)
 
 
-@define
+@dataclass
 class ChromeConfig:
     user_agent: Optional[str] = None
 
@@ -18,7 +18,7 @@ class ChromeConfig:
     binary_location: Optional[str] = None
 
 
-@define
+@dataclass
 class SeleniumConfig:
     headless: bool = False
 
@@ -30,87 +30,62 @@ class SeleniumConfig:
     disable_gpu: bool = True
 
 
-@define
+DEFAULT_CHROME_CONFIG = ChromeConfig()
+DEFAULT_SELENIUM_CONFIG = SeleniumConfig()
+
+
+@dataclass
 class Config:
-    chrome: ChromeConfig
-    selenium: SeleniumConfig
+    chrome: ChromeConfig = DEFAULT_CHROME_CONFIG
+    selenium: SeleniumConfig = DEFAULT_SELENIUM_CONFIG
+
+
+DEFAULT_CONFIG = Config()
 
 
 def get_config(cfg_fp: str = "", *, first_usage=False) -> Config:
     parser = configparser.ConfigParser()
 
-    # skip the read if it's first usage,
-    # found in this file with no path provided
-    if not first_usage:
-        # read file (can also be not found)
-        if not cfg_fp:
-            logger.warning("No config provided! Defaults will be used.")
-        elif not parser.read(cfg_fp):
-            logger.warning(f"Cannot read config from {cfg_fp}. Defaults will be used.")
+    if first_usage and not cfg_fp or not parser.read(cfg_fp):
+        logger.warning(f"Cannot read config from {cfg_fp}. Defaults will be used.")
+        return DEFAULT_CONFIG
 
     # get selenium options
-    path = parser.get("selenium", "path")
-    url = parser.get("selenium", "url")
-    headless = parser.getboolean("selenium", "headless")
-    enable_logging = parser.getboolean("selenium", "logging")
-    profile_root = parser.get("selenium", "profile_root")
-    binary_location = parser.get("selenium", "binary_location")
+    selenium = parser["selenium"]
+    headless = selenium.getboolean("headless", fallback=DEFAULT_SELENIUM_CONFIG.headless)
+    _logging = selenium.getboolean("logging", fallback=DEFAULT_SELENIUM_CONFIG.logging)
+    no_sandbox = selenium.getboolean("no_sandbox", fallback=DEFAULT_SELENIUM_CONFIG.no_sandbox)
+    ignore_certificate_errors = selenium.getboolean("ignore_certificate_errors", fallback=DEFAULT_SELENIUM_CONFIG.ignore_certificate_errors)
+    allow_running_insecure_content = selenium.getboolean("allow_running_insecure_content", fallback=DEFAULT_SELENIUM_CONFIG.allow_running_insecure_content)
+    disable_dev_shm_usage = selenium.getboolean("disable_dev_shm_usage", fallback=DEFAULT_SELENIUM_CONFIG.disable_dev_shm_usage)
+    disable_gpu = selenium.getboolean("disable_gpu", fallback=DEFAULT_SELENIUM_CONFIG.disable_gpu)
 
-    # get automsr options
-    skip = parser.get("automsr", "skip").lower()
-    retry = parser.getint("automsr", "retry")
-    credentials = parser.get("automsr", "credentials")
-    search_type = parser.get("automsr", "search_type")
-    verbose = parser.getboolean("automsr", "verbose")
+    # get chrome options
+    chrome = parser["chrome"]
+    user_agent = chrome.get("user_agent", fallback=DEFAULT_CHROME_CONFIG.user_agent)
+    profile_root = chrome.get("profile_root", fallback=DEFAULT_CHROME_CONFIG.profile_root)
+    profile = chrome.get("profile", fallback=DEFAULT_CHROME_CONFIG.profile)
+    binary_location = chrome.get("binary_location", fallback=DEFAULT_CHROME_CONFIG.binary_location)
 
-    # get email options
-    send = parser.getboolean("email", "send")
-    strategy = parser.get("email", "strategy")
-    sender = parser.get("email", "sender")
-    password = parser.get("email", "password")
-    recipient = parser.get("email", "recipient")
-    tls = parser.getboolean("email", "tls")
-    host = parser.get("email", "host")
-    port = parser.getint("email", "port")
-
-    # get prize options
-    mask = parser.get("prize", "mask")
-
-    # finally, return the config dictionary
-    return {
-        "automsr": dict(
-            skip=skip,
-            skip_activity=skip_activity,
-            skip_punchcard=skip_punchcard,
-            skip_search=skip_search,
-            retry=retry,
-            credentials=credentials,
-            search_type=search_type,
-            verbose=verbose,
-        ),
-        "selenium": dict(
-            env=env,
-            path=path,
-            url=url,
-            headless=headless,
-            enable_logging=enable_logging,
+    _config = Config(
+        chrome=ChromeConfig(
+            user_agent=user_agent,
             profile_root=profile_root,
+            profile=profile,
             binary_location=binary_location,
         ),
-        "email": dict(
-            send=send,
-            strategy=strategy,
-            sender=sender,
-            password=password,
-            recipient=recipient,
-            tls=tls,
-            host=host,
-            port=port,
+        selenium=SeleniumConfig(
+            headless=headless,
+            logging=_logging,
+            no_sandbox=no_sandbox,
+            ignore_certificate_errors=ignore_certificate_errors,
+            allow_running_insecure_content=allow_running_insecure_content,
+            disable_dev_shm_usage=disable_dev_shm_usage,
+            disable_gpu=disable_gpu,
         ),
-        "prize": dict(
-            mask=mask,
-        ),
-    }
+    )
+
+    return _config
 
 
 # read one time and then use it

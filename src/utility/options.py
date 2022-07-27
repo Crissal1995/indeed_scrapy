@@ -1,42 +1,57 @@
+import logging
+
 from selenium.webdriver.chrome.options import Options
+from config import config
 
 
-def get_options(**kwargs) -> Options:
+logger = logging.getLogger(__name__)
+
+
+def get_options() -> Options:
     options = Options()
-    options.add_argument("no-sandbox")
-    options.add_argument("ignore-certificate-errors")
-    options.add_argument("allow-running-insecure-content")
-    options.add_argument("disable-dev-shm-usage")
-    options.add_argument("disable-gpu")
 
-    profile_root = kwargs.get("profile_root") or config["selenium"]["profile_root"]
-    profile_dir = kwargs.get("profile_dir")
+    selenium_cfg = config.selenium
+
+    if selenium_cfg.disable_gpu:
+        options.add_argument("disable-gpu")
+
+    if selenium_cfg.no_sandbox:
+        options.add_argument("no-sandbox")
+
+    if selenium_cfg.ignore_certificate_errors:
+        options.add_argument("ignore-certificate-errors")
+
+    if selenium_cfg.allow_running_insecure_content:
+        options.add_argument("allow-running-insecure-content")
+
+    if selenium_cfg.disable_dev_shm_usage:
+        options.add_argument("disable-dev-shm-usage")
+
+    if selenium_cfg.headless:
+        options.add_argument("headless")
+
+    if not selenium_cfg.logging:
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+
+    chrome_cfg = config.chrome
+
+    profile_root = chrome_cfg.profile_root
+    profile_dir = chrome_cfg.profile
 
     if profile_root and profile_dir:
-        if IN_DOCKER_CONTAINER:
-            logger.warning(
-                "Cannot use profiles in docker env! Defaults to old login method"
-            )
-        else:
-            logger.info(f"Using profile '{profile_dir}' (root: {profile_root})")
-            options.add_argument(f"--user-data-dir={profile_root}")
-            options.add_argument(f"--profile-directory={profile_dir}")
+        logger.info(f"Using profile '{profile_dir}' (root: {profile_root})")
+        options.add_argument(f"--user-data-dir={profile_root}")
+        options.add_argument(f"--profile-directory={profile_dir}")
     elif profile_dir:  # ignore only profile_root set
         raise ValueError(
             "Cannot use Chrome profile without 'profile_root' variable set in configuration"
         )
 
-    ua = kwargs.get("user_agent")
-    if ua:
-        options.add_argument(f"user-agent={ua}")
+    user_agent = chrome_cfg.user_agent
+    if user_agent:
+        options.add_argument(f"user-agent={user_agent}")
 
-    if kwargs.get("headless") or config["selenium"]["headless"]:
-        options.add_argument("headless")
-
-    if not config["selenium"]["enable_logging"]:
-        options.add_experimental_option("excludeSwitches", ["enable-logging"])
-
-    binary_location = config["selenium"]["binary_location"]
+    binary_location = chrome_cfg.binary_location
     if binary_location:
         logger.info(f"Binary location provided: {binary_location}")
         options.binary_location = binary_location
