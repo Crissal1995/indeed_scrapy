@@ -5,4 +5,10 @@ from utility.options import get_chrome_options
 
 
 def get_driver(config: Config = None) -> webdriver.Chrome:
-    return webdriver.Chrome(chrome_options=get_chrome_options(config=config))
+    if not config:
+        config = Config()
+
+    return webdriver.Chrome(
+        executable_path=config.chrome.chromedriver,
+        chrome_options=get_chrome_options(config=config),
+    )

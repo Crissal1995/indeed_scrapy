@@ -15,6 +15,7 @@ class ChromeConfig:
     profile: Optional[str] = None
 
     binary_location: Optional[str] = None
+    chromedriver: Optional[str] = None
 
 
 @dataclass
@@ -46,8 +47,10 @@ def get_config(cfg_fp: str = "", *, first_usage=False) -> Config:
     parser = configparser.ConfigParser()
 
     if first_usage and not cfg_fp or not parser.read(cfg_fp):
-        logger.warning(f"Cannot read config from {cfg_fp}. Defaults will be used.")
+        logger.debug(f"Cannot read config from {cfg_fp}. Defaults will be used.")
         return DEFAULT_CONFIG
+    else:
+        logger.debug(f"Correctly parsed config from {cfg_fp}")
 
     # get selenium options
     selenium = parser["selenium"]
@@ -83,6 +86,9 @@ def get_config(cfg_fp: str = "", *, first_usage=False) -> Config:
     binary_location = chrome.get(
         "binary_location", fallback=DEFAULT_CHROME_CONFIG.binary_location
     )
+    chromedriver = chrome.get(
+        "chromedriver", fallback=DEFAULT_CHROME_CONFIG.chromedriver
+    )
 
     _config = Config(
         chrome=ChromeConfig(
@@ -90,6 +96,7 @@ def get_config(cfg_fp: str = "", *, first_usage=False) -> Config:
             profile_root=profile_root,
             profile=profile,
             binary_location=binary_location,
+            chromedriver=chromedriver,
         ),
         selenium=SeleniumConfig(
             headless=headless,
