@@ -8,6 +8,8 @@ authors = ["Cristiano Salerno <cristianosalerno1@gmail.com>"]
 python = "^3.10"
 selenium = "^4.3.0"
 attrs = "^21.4.0"
+requests = "^2.28.1"
+pydantic = "^1.9.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
