@@ -41,6 +41,7 @@ class JobInfo(ToSnakeCaseModel):
 class Response(ToSnakeCaseModel):
     candidates: List[Candidate]
     job_info: List[JobInfo]
+    statuses: List[Status]
 
 
 headers = {
