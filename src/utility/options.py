@@ -1,12 +1,16 @@
 import logging
 
-from config import config
 from selenium.webdriver.chrome.options import Options
+
+from src.utility.config import Config
 
 logger = logging.getLogger(__name__)
 
 
-def get_options() -> Options:
+def get_chrome_options(config: Config = None) -> Options:
+    if not config:
+        config = Config()
+
     options = Options()
 
     selenium_cfg = config.selenium
