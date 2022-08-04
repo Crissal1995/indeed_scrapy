@@ -118,5 +118,6 @@ while more_candidates:
 
     offset += num_candidates
     more_candidates = num_candidates > 0
+    i += 1
 
 print(f"Stored {offset} candidates")
