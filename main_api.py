@@ -1,9 +1,24 @@
+import datetime
 import os
 import pprint
-from typing import List
+import string
+from typing import Any, List, Optional
 
 import requests
+from dotenv import load_dotenv
 from pydantic import BaseModel
+
+load_dotenv()
+
+
+def get_or_raise(key: str, default: Optional[Any] = None) -> Any:
+    value = os.getenv(key)
+    if value is None:
+        if default:
+            return default
+        else:
+            raise EnvironmentError(f"Missing key: {key}")
+    return value
 
 
 def to_camel(string: str) -> str:
@@ -47,9 +62,10 @@ class Response(ToSnakeCaseModel):
 headers = {
     "authority": "employers.indeed.com",
     "accept": "application/json",
+    "accept-encoding": "gzip, deflate, br",
     "accept-language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
     "cache-control": "no-cache",
-    "cookie": os.getenv("COOKIE"),
+    "cookie": get_or_raise("COOKIE"),
     "dnt": "1",
     "indeed-client-application": "entcand",
     "pragma": "no-cache",
@@ -60,25 +76,47 @@ headers = {
     "sec-fetch-dest": "empty",
     "sec-fetch-mode": "cors",
     "sec-fetch-site": "same-origin",
-    "user-agent": os.getenv("USER_AGENT"),
+    "user-agent": get_or_raise("USER_AGENT"),
     "x-datadog-origin": "rum",
-    "x-datadog-parent-id": os.getenv("DATADOG_PARENT_ID"),
+    "x-datadog-parent-id": get_or_raise("DATADOG_PARENT_ID"),
     "x-datadog-sampled": "1",
     "x-datadog-sampling-priority": "1",
-    "x-datadog-trace-id": os.getenv("DATADOG_TRACE_ID"),
+    "x-datadog-trace-id": get_or_raise("DATADOG_TRACE_ID"),
     "x-indeed-api": "1",
     "x-indeed-appname": "entcand",
     "x-indeed-apptype": "desktop",
     "x-indeed-rpc": "1",
-    "x-indeed-tk": os.getenv("INDEED_TOKEN"),
+    "x-indeed-tk": get_or_raise("INDEED_TOKEN"),
 }
 
-url = (
-    "https://employers.indeed.com/api/ctws/preview/candidates?offset=0&encryptedJobId=0"
-)
+base_url = "https://employers.indeed.com/api/ctws/preview/candidates?offset=$offset&encryptedJobId=0"
 
-r = requests.get(url, headers=headers)
-response = Response(**r.json())
+OUTPUT_FILE = "responses.txt"
+NOW = datetime.datetime.now()
 
-pprint.pp(response.candidates)
-print(f"Found {len(response.candidates)} candidates")
+with open(OUTPUT_FILE, "a") as f:
+    f.write(f"{NOW}\n")
+
+
+more_candidates = True
+offset = 0
+i = 0
+
+while more_candidates:
+    url = string.Template(base_url).substitute(offset=offset)
+
+    r = requests.get(url, headers=headers)
+    data = r.json()
+    response = Response(**data)
+
+    # pprint.pp(response.candidates)
+    num_candidates = len(response.candidates)
+    print(f"Found {num_candidates} candidates [round {i+1}]")
+
+    with open(OUTPUT_FILE, "a") as f:
+        pprint.pp(response.json(), f)
+
+    offset += num_candidates
+    more_candidates = num_candidates > 0
+
+print(f"Stored {offset} candidates")
