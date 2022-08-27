@@ -4,3 +4,5 @@ venv
 !default.cfg
 *.env
 !default.env
+*.txt
+.pytest_cache
