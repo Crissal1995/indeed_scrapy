@@ -1,7 +1,7 @@
 import logging
 
-from scraper import get_driver
-from utility.config import get_config
+from src.scraper import get_driver
+from src.utility.config import get_config
 
 if __name__ == "__main__":
     FORMAT = "%(asctime)s :: %(levelname)s :: [%(module)s.%(funcName)s.%(lineno)d] :: %(message)s"
